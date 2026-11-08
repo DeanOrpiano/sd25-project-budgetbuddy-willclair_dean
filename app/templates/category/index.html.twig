@@ -1,37 +1,57 @@
+
 {% extends 'base.html.twig' %}
 
-{% block title %}Category index{% endblock %}
+{% block title %}Categorieën{% endblock %}
 
 {% block body %}
-    <h1>Category index</h1>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Status</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
+<h1>Categorieën</h1>
+
+<a href="{{ path('app_category_new') }}"
+   class="btn btn-primary mb-3">
+    Nieuwe categorie
+</a>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Naam</th>
+            <th>Status</th>
+            <th>Acties</th>
+        </tr>
+    </thead>
+
+    <tbody>
         {% for category in categories %}
             <tr>
                 <td>{{ category.id }}</td>
                 <td>{{ category.name }}</td>
-                <td>{{ category.status ? 'Yes' : 'No' }}</td>
                 <td>
-                    <a href="{{ path('app_category_show', {'id': category.id}) }}">show</a>
-                    <a href="{{ path('app_category_edit', {'id': category.id}) }}">edit</a>
+                    {% if category.status %}
+                        <span class="badge bg-success">Actief</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inactief</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ path('app_category_show', {id: category.id}) }}"
+                       class="btn btn-sm btn-info">
+                        Bekijken
+                    </a>
+
+                    <a href="{{ path('app_category_edit', {id: category.id}) }}"
+                       class="btn btn-sm btn-warning">
+                        Bewerken
+                    </a>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="4">no records found</td>
+                <td colspan="4">Geen categorieën gevonden.</td>
             </tr>
         {% endfor %}
-        </tbody>
-    </table>
+    </tbody>
+</table>
 
-    <a href="{{ path('app_category_new') }}">Create new</a>
 {% endblock %}
