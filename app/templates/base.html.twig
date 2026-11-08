@@ -24,22 +24,26 @@
 
 <body class="bg-light">
 
-    <!-- Navigation -->
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container">
 
-            <a class="navbar-brand"
-               href="{{ path('app_category_index') }}">
-                Budget Buddy
-            </a>
+<!-- Navigation -->
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
 
-            <a class="nav-link text-white"
-               href="{{ path('app_category_index') }}">
-                Categorieën
-            </a>
+        <!-- Budget Buddy logo goes to Dashboard -->
+        <a class="navbar-brand"
+           href="{{ path('app_dashboard') }}">
+            Budget Buddy
+        </a>
 
-        </div>
-    </nav>
+        <!-- Categories goes to Category List -->
+        <a class="nav-link text-white"
+           href="{{ path('app_category_index') }}">
+            Categorieën
+        </a>
+
+    </div>
+</nav>
+
 
     <!-- Main Content -->
     <main class="container mt-4">
