@@ -1,0 +1,200 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Uitgavenrapport - Budget Buddy{% endblock %}
+
+{% block body %}
+
+<h1>Uitgavenrapport</h1>
+<p>Bekijk je uitgaven per periode en categorie.</p>
+
+<!-- Filter Form -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get"
+              action="{{ path('app_expense_report') }}"
+              class="row g-3"
+              data-turbo="false">
+
+            <div class="col-md-4">
+                <label for="start" class="form-label">
+                    Van datum
+                </label>
+                <input type="date"
+                       id="start"
+                       name="start"
+                       value="{{ start }}"
+                       class="form-control"
+                       required>
+            </div>
+
+            <div class="col-md-4">
+                <label for="end" class="form-label">
+                    Tot datum
+                </label>
+                <input type="date"
+                       id="end"
+                       name="end"
+                       value="{{ end }}"
+                       class="form-control"
+                       required>
+            </div>
+
+            <div class="col-md-4">
+                <label for="category" class="form-label">
+                    Categorie
+                </label>
+
+                <select id="category"
+                        name="category"
+                        class="form-select">
+
+                    <option value="0">Alle categorieën</option>
+
+                    {% for category in categories %}
+                        <option value="{{ category.id }}"
+                            {% if categoryId == category.id %}
+                                selected
+                            {% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    Bekijk rapport
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+{% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+{% else %}
+
+    <!-- Total Expenses -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>Totaal uitgaven</h5>
+            <h2 class="text-danger">
+                €{{ total|number_format(2, ',', '.') }}
+            </h2>
+        </div>
+    </div>
+
+    <!-- Expense Table -->
+    <h3>Uitgaventransacties</h3>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Categorie</th>
+                <th>Bedrag</th>
+                <th>Datum</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.id }}</td>
+                    <td>{{ transaction.category.name }}</td>
+
+                    <td class="text-danger">
+                        €{{ transaction.amount|number_format(2, ',', '.') }}
+                    </td>
+
+                    <td>
+                        {{ transaction.createdAt|date('d-m-Y H:i') }}
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4">
+                        Geen uitgaven gevonden.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Chart -->
+    {% if transactions is not empty %}
+
+        <h3 class="mt-4">Grafiek uitgaven</h3>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <div style="height: 350px;">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {% set chartLabels = [] %}
+        {% set chartAmounts = [] %}
+
+        {% for transaction in transactions %}
+            {% set chartLabels = chartLabels|merge([
+                transaction.createdAt|date('d-m-Y H:i')
+            ]) %}
+
+            {% set chartAmounts = chartAmounts|merge([
+                transaction.amount + 0
+            ]) %}
+        {% endfor %}
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+
+        <script>
+            const expenseChart = document.getElementById('expenseChart');
+
+            new Chart(expenseChart, {
+                type: 'bar',
+
+                data: {
+                    labels: {{ chartLabels|json_encode|raw }},
+
+                    datasets: [{
+                        label: 'Uitgaven (€)',
+                        data: {{ chartAmounts|json_encode|raw }},
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)'
+                    }]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Datum en tijd'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Bedrag (€)'
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+
+    {% endif %}
+
+{% endif %}
+
+{% endblock %}
