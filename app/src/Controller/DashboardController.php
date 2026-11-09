@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\CategoryRepository;
 use App\Repository\BudgetTransactionRepository;
+use App\Repository\ExpenseTransactionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -13,7 +14,8 @@ class DashboardController extends AbstractController
     #[Route('/', name: 'app_dashboard')]
     public function index(
         CategoryRepository $categoryRepository,
-        BudgetTransactionRepository $budgetTransactionRepository
+        BudgetTransactionRepository $budgetRepository,
+        ExpenseTransactionRepository $expenseRepository
     ): Response
     {
         // Get active categories
@@ -21,57 +23,72 @@ class DashboardController extends AbstractController
             'status' => true
         ]);
 
-        // Get all budget transactions
-        $transactions = $budgetTransactionRepository->findAll();
+        $budgetTransactions = $budgetRepository->findAll();
+        $expenseTransactions = $expenseRepository->findAll();
 
         $budgets = [];
+        $expenses = [];
         $todayIncome = 0;
+        $todayExpenses = 0;
 
-        $today = (new \DateTimeImmutable(
-            'today',
-            new \DateTimeZone('Europe/Amsterdam')
-        ))->format('Y-m-d');
 
-        foreach ($transactions as $transaction) {
+        $today = (new \DateTimeImmutable())->format('Y-m-d');
+
+        // Calculate budgets
+        foreach ($budgetTransactions as $transaction) {
             $categoryId = $transaction->getCategory()->getId();
+            $amount = (int) round((float) $transaction->getAmount() * 100);
 
-            // Convert euros to cents
-            $amount = (int) round(
-                (float) $transaction->getAmount() * 100
-            );
+            $budgets[$categoryId] = ($budgets[$categoryId] ?? 0) + $amount;
 
-            if (!isset($budgets[$categoryId])) {
-                $budgets[$categoryId] = 0;
-            }
-
-            // Add money to the category
-            $budgets[$categoryId] += $amount;
-
-            // Check if transaction was created today
-            if (
-                $transaction->getCreatedAt() !== null &&
-                $transaction->getCreatedAt()->format('Y-m-d') === $today
-            ) {
+            if ($transaction->getCreatedAt()?->format('Y-m-d') === $today) {
                 $todayIncome += $amount;
             }
         }
 
-        // Calculate total budget of active categories
-        $totalBudget = 0;
+        // Calculate expenses
+        foreach ($expenseTransactions as $transaction) {
+            $categoryId = $transaction->getCategory()->getId();
+            $amount = (int) round((float) $transaction->getAmount() * 100);
 
-        foreach ($categories as $category) {
-            $totalBudget += $budgets[$category->getId()] ?? 0;
+            $expenses[$categoryId] = ($expenses[$categoryId] ?? 0) + $amount;
+
+            
+// Check if the expense was made today
+if ($transaction->getCreatedAt()?->format('Y-m-d') === $today) {
+    $todayExpenses += $amount;
+}
+
         }
 
-        // Convert cents back to euros
+        // Totals for active categories
+        $totalBudget = 0;
+        $totalExpenses = 0;
+
+        foreach ($categories as $category) {
+            $id = $category->getId();
+
+            $totalBudget += $budgets[$id] ?? 0;
+            $totalExpenses += $expenses[$id] ?? 0;
+        }
+
+        // Convert cents to euros
         foreach ($budgets as $id => $amount) {
             $budgets[$id] = $amount / 100;
         }
 
+        foreach ($expenses as $id => $amount) {
+            $expenses[$id] = $amount / 100;
+        }
+
         return $this->render('dashboard/index.html.twig', [
+            'todayExpenses' => $todayExpenses / 100,
             'categories' => $categories,
             'budgets' => $budgets,
+            'expenses' => $expenses,
             'totalBudget' => $totalBudget / 100,
+            'totalExpenses' => $totalExpenses / 100,
+            'remainingBudget' => ($totalBudget - $totalExpenses) / 100,
             'todayIncome' => $todayIncome / 100
         ]);
     }

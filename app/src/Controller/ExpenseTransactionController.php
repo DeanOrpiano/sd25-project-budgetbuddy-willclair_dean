@@ -15,12 +15,40 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ExpenseTransactionController extends AbstractController
 {
     #[Route(name: 'app_expense_transaction_index', methods: ['GET'])]
-    public function index(ExpenseTransactionRepository $expenseTransactionRepository): Response
-    {
-        return $this->render('expense_transaction/index.html.twig', [
-            'expense_transactions' => $expenseTransactionRepository->findAll(),
-        ]);
-    }
+    
+public function index(
+    Request $request,
+    ExpenseTransactionRepository $expenseTransactionRepository
+): Response
+{
+    // Maximum number of transactions per page
+    $perPage = 10;
+
+    // Count all expense transactions
+    $total = $expenseTransactionRepository->count([]);
+
+    // Calculate the number of pages
+    $totalPages = max(1, (int) ceil($total / $perPage));
+
+    // Get the current page
+    $page = $request->query->getInt('page', 1);
+    $page = max(1, min($page, $totalPages));
+
+    // Get expenses, newest first
+    $transactions = $expenseTransactionRepository->findBy(
+        [],
+        ['createdAt' => 'DESC', 'id' => 'DESC'],
+        $perPage,
+        ($page - 1) * $perPage
+    );
+
+    return $this->render('expense_transaction/index.html.twig', [
+        'expense_transactions' => $transactions,
+        'page' => $page,
+        'totalPages' => $totalPages
+    ]);
+}
+
 
     #[Route('/new', name: 'app_expense_transaction_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response

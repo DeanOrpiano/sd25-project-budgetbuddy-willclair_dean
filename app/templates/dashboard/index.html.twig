@@ -8,15 +8,14 @@
 <h1>Dashboard</h1>
 <p>Welkom bij Budget Buddy!</p>
 
-<!-- Budget Summary -->
+<!-- Financial Summary -->
 <div class="row mb-4">
 
     <!-- Total Budget -->
     <div class="col-md-6 mb-3">
         <div class="card h-100">
             <div class="card-body">
-                <h5 class="card-title">Totaal budget</h5>
-
+                <h5>Totaal budget</h5>
                 <h2>
                     €{{ totalBudget|number_format(2, ',', '.') }}
                 </h2>
@@ -28,10 +27,7 @@
     <div class="col-md-6 mb-3">
         <div class="card h-100">
             <div class="card-body">
-                <h5 class="card-title">
-                    Inkomsten vandaag
-                </h5>
-
+                <h5>Inkomsten vandaag</h5>
                 <h2 class="text-success">
                     €{{ todayIncome|number_format(2, ',', '.') }}
                 </h2>
@@ -39,9 +35,45 @@
         </div>
     </div>
 
+    <!-- Total Expenses -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5>Totaal uitgaven</h5>
+                <h2 class="text-danger">
+                    €{{ totalExpenses|number_format(2, ',', '.') }}
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remaining Budget -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5>Beschikbaar budget</h5>
+                <h2 class="{{ remainingBudget < 0 ? 'text-danger' : 'text-success' }}">
+                    €{{ remainingBudget|number_format(2, ',', '.') }}
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Expenses -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5>Uitgaven vandaag</h5>
+                <h2 class="text-danger">
+                    €{{ todayExpenses|number_format(2, ',', '.') }}
+                </h2>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<!-- Categories -->
+<!-- Active Categories -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>Actieve categorieën</h3>
 
@@ -52,7 +84,13 @@
 </div>
 
 <div class="row">
+
     {% for category in categories %}
+
+        {% set budget = budgets[category.id]|default(0) %}
+        {% set spent = expenses[category.id]|default(0) %}
+        {% set remaining = budget - spent %}
+
         <div class="col-md-4 mb-3">
             <div class="card h-100">
                 <div class="card-body">
@@ -65,21 +103,31 @@
                         Actief
                     </span>
 
-                    <p class="mt-3 mb-0">
+                    <p class="mt-3 mb-1">
                         Budget:
-                        <strong>
-                            €{{ (budgets[category.id]|default(0))|number_format(2, ',', '.') }}
+                        €{{ budget|number_format(2, ',', '.') }}
+                    </p>
+
+                    <p class="mb-1">
+                        Uitgaven:
+                        €{{ spent|number_format(2, ',', '.') }}
+                    </p>
+
+                    <p class="mb-0">
+                        <strong class="{{ remaining < 0 ? 'text-danger' : 'text-success' }}">
+                            Beschikbaar:
+                            €{{ remaining|number_format(2, ',', '.') }}
                         </strong>
                     </p>
 
                 </div>
             </div>
         </div>
+
     {% else %}
-        <div class="col-12">
-            <p>Geen actieve categorieën gevonden.</p>
-        </div>
+        <p>Geen actieve categorieën gevonden.</p>
     {% endfor %}
+
 </div>
 
 {% endblock %}

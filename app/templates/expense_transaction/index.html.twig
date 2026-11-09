@@ -1,37 +1,99 @@
+
 {% extends 'base.html.twig' %}
 
-{% block title %}ExpenseTransaction index{% endblock %}
+{% block title %}Uitgaven - Budget Buddy{% endblock %}
 
 {% block body %}
-    <h1>ExpenseTransaction index</h1>
 
-    <table class="table">
-        <thead>
+<h1>Uitgaven</h1>
+<p>Hier zie je alle geregistreerde uitgaven.</p>
+
+<a href="{{ path('app_expense_transaction_new') }}"
+   class="btn btn-primary mb-3">
+    + Nieuwe uitgave
+</a>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Categorie</th>
+            <th>Bedrag</th>
+            <th>Datum</th>
+            <th>Acties</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for transaction in expense_transactions %}
             <tr>
-                <th>Id</th>
-                <th>Amount</th>
-                <th>CreatedAt</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for expense_transaction in expense_transactions %}
-            <tr>
-                <td>{{ expense_transaction.id }}</td>
-                <td>{{ expense_transaction.amount }}</td>
-                <td>{{ expense_transaction.createdAt ? expense_transaction.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ transaction.id }}</td>
+
+                <td>{{ transaction.category.name }}</td>
+
+                <td class="text-danger">
+                    €{{ transaction.amount|number_format(2, ',', '.') }}
+                </td>
+
                 <td>
-                    <a href="{{ path('app_expense_transaction_show', {'id': expense_transaction.id}) }}">show</a>
-                    <a href="{{ path('app_expense_transaction_edit', {'id': expense_transaction.id}) }}">edit</a>
+                    {{ transaction.createdAt|date('d-m-Y H:i') }}
+                </td>
+
+                <td>
+                    <a href="{{ path('app_expense_transaction_show', {'id': transaction.id}) }}"
+                       class="btn btn-sm btn-info">
+                        Bekijken
+                    </a>
+
+                    <a href="{{ path('app_expense_transaction_edit', {'id': transaction.id}) }}"
+                       class="btn btn-sm btn-warning">
+                        Bewerken
+                    </a>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="4">no records found</td>
+                <td colspan="5">
+                    Geen uitgaven gevonden.
+                </td>
             </tr>
         {% endfor %}
-        </tbody>
-    </table>
+    </tbody>
+</table>
 
-    <a href="{{ path('app_expense_transaction_new') }}">Create new</a>
+{% if totalPages > 1 %}
+    <nav aria-label="Uitgaven pagina's">
+        <ul class="pagination">
+
+            {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="{{ path('app_expense_transaction_index', {'page': page - 1}) }}">
+                        Vorige
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for number in 1..totalPages %}
+                <li class="page-item {{ page == number ? 'active' : '' }}">
+                    <a class="page-link"
+                       href="{{ path('app_expense_transaction_index', {'page': number}) }}">
+                        {{ number }}
+                    </a>
+                </li>
+            {% endfor %}
+
+            {% if page < totalPages %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="{{ path('app_expense_transaction_index', {'page': page + 1}) }}">
+                        Volgende
+                    </a>
+                </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+{% endif %}
+
 {% endblock %}
