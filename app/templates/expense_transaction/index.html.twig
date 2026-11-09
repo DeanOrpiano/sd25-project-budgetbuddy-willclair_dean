@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}ExpenseTransaction index{% endblock %}
+
+{% block body %}
+    <h1>ExpenseTransaction index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Amount</th>
+                <th>CreatedAt</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for expense_transaction in expense_transactions %}
+            <tr>
+                <td>{{ expense_transaction.id }}</td>
+                <td>{{ expense_transaction.amount }}</td>
+                <td>{{ expense_transaction.createdAt ? expense_transaction.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('app_expense_transaction_show', {'id': expense_transaction.id}) }}">show</a>
+                    <a href="{{ path('app_expense_transaction_edit', {'id': expense_transaction.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_expense_transaction_new') }}">Create new</a>
+{% endblock %}

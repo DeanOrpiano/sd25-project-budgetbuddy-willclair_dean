@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New ExpenseTransaction{% endblock %}
+
+{% block body %}
+    <h1>Create new ExpenseTransaction</h1>
+
+    {{ include('expense_transaction/_form.html.twig') }}
+
+    <a href="{{ path('app_expense_transaction_index') }}">back to list</a>
+{% endblock %}
